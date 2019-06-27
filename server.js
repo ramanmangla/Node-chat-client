@@ -1,9 +1,11 @@
  
 // Node Chat Client
+// Server
 
 var express = require('express');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+// MongoDB mLab credential file
 var credential = require('./credential.json')
 
 var app = express();
@@ -17,19 +19,28 @@ app.use(bodyParser.urlencoded({extended: false}));
 var dbURL = 'mongodb+srv://' + credential.username + ':' + credential.password + 
 			'@chatbotdb-pkefu.mongodb.net/test?retryWrites=true&w=majority';
 
-var messages = [
-	{name: 'Tim', message: 'Hi'},
-	{name: 'Jane', message: 'Hello'}
-];
+var Message = mongoose.model('Message', {
+	name: String,
+	message: String
+});
 
 app.get('/messages', (req, res) => {
-	res.send(messages);
+	Message.find({}, (err, messages) => {
+		res.send(messages);
+	});
 });
 
 app.post('/messages', (req, res) => {
-	messages.push(req.body);
-	io.emit('message', req.body);
-	res.sendStatus(200);
+	var message = new Message(req.body);
+
+	message.save((err) => {
+		if(err) {
+			sendStatus(500);
+		}
+
+		io.emit('message', req.body);
+		res.sendStatus(200);
+	});	
 });
 
 io.on('connection', (socket) => {
@@ -37,7 +48,7 @@ io.on('connection', (socket) => {
 });
 
 mongoose.connect(dbURL, { useNewUrlParser: true }, (err) => {
-	console.log('Mongoose connected', err);
+	console.log('MongooDB connected', err);
 });
 
 var server = http.listen(3000, () => {
