@@ -35,31 +35,57 @@ app.get('/messages', (req, res) => {
 });
 
 // POST /messages endpoint
-app.post('/messages', (req, res) => {
-	var message = new Message(req.body);
+app.post('/messages', async (req, res) => {
 
-	// Using promises and dependency chains
-	// to simplify callbacks
-	// catch block deals with any errors
-	message.save().then(() => {
+	// Using async/await for enhanced callback
+	// readability instead of promise chains
+	// Looks more like synchronous functions
+	try {
+		var message = new Message(req.body);
+
+		var savedMessage = await message.save();
+
 		console.log('saved');
 
-		// Looking for censored words
-		return Message.findOne({message: 'badword'});
-	}).then((censored) => {
+		var censored = await Message.findOne({message: 'badword'});
+
 		if(censored) {
-			console.log('censored word found', censored);
-			return Message.remove({_id: censored.id});
+			await Message.remove({_id: censored.id});
+		} else {
+			io.emit('message', req.body);
 		}
 
-		// Send the the new message to all clients
-		// using the socket connection
-		io.emit('message', req.body);
 		res.sendStatus(200);
-	}).catch((err) => {
+	} catch(error) {
 		res.sendStatus(500);
 		console.error(error);
-	});	
+	} finally {
+		// Always executes regardless of error
+		console.log('message post called')
+	}
+
+	// // Using promises and dependency chains
+	// // to simplify callbacks
+	// // catch block deals with any errors
+	// message.save().then(() => {
+	// 	console.log('saved');
+
+	// 	// Looking for censored words
+	// 	return Message.findOne({message: 'badword'});
+	// }).then((censored) => {
+	// 	if(censored) {
+	// 		console.log('censored word found', censored);
+	// 		return Message.remove({_id: censored.id});
+	// 	}
+
+	// 	// Send the the new message to all clients
+	// 	// using the socket connection
+	// 	io.emit('message', req.body);
+	// 	res.sendStatus(200);
+	// }).catch((err) => {
+	// 	res.sendStatus(500);
+	// 	console.error(error);
+	// });	
 });
 
 // Establish socket connection
