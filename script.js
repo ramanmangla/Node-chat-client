@@ -17,7 +17,7 @@ $(() => {
 
 // Add a message to the chat client window
 function addMessage(message){
-    $("#messages").append(`<h4> ${message.name} </h4> <p> ${message.message} </p>`);
+    $("#messages").append(`<div class = "message"><h4> ${message.name} </h4> <p> ${message.message} </p></div>`);
 }
 
 // Get messages from database and populate the chat client
