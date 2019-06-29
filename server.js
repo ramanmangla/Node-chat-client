@@ -27,14 +27,23 @@ var Message = mongoose.model('Message', {
 	message: String
 });
 
-// GET /messages endpoint
+// GET messages endpoint
 app.get('/messages', (req, res) => {
 	Message.find({}, (err, messages) => {
 		res.send(messages);
 	});
 });
 
-// POST /messages endpoint
+// GET messages for a user
+app.get('/messages/:user', (req, res) => {
+	var user = req.params.user;
+
+	Message.find({name: user}, (err, messages) => {
+		res.send(messages);
+	});
+});
+
+// POST messages endpoint
 app.post('/messages', async (req, res) => {
 
 	// Using async/await for enhanced callback
